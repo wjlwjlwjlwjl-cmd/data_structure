@@ -57,9 +57,15 @@ void TestMinTree() {
 	g.addEdge('g', 'h', 1);
 	g.addEdge('g', 'i', 6);
 	g.addEdge('h', 'i', 7);
-	graph_matrix::Graph<char, int> kminTree;
-	std::cout << "Kruskal:" << g.Kruskal(kminTree) << std::endl;
-	kminTree.Print();
+	graph_matrix::Graph<char, int> kminTree1;
+	std::cout << "Kruskal:" << g.Kruskal(kminTree1) << std::endl;
+	kminTree1.Print();
+
+	std::cout << std::endl << std::endl << std::endl;
+
+	graph_matrix::Graph<char, int> kminTree2;
+	std::cout << "Prim:" << g.Prim(kminTree2, 'a') << std::endl;
+	kminTree2.Print();
 }
 
 int main() {

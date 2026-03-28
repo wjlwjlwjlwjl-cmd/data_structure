@@ -162,45 +162,93 @@ namespace graph_matrix {
 			}
 		};
 
-		W Kruskal(Self& self)
-		{
+		//最小生成树算法一：克鲁斯卡尔算法
+		//每次路径都选最短的一条，通过并查集来确定不成环
+		W Kruskal(Self& self) {
 			int n = _vertexs.size();
 			self._vertexs = _vertexs;
 			self._indexMap = _indexMap;
-			self._matrix.resize(n);
+			self._matrix = _matrix;
+
+			std::priority_queue < Edge, std::vector<Edge>, std::greater<Edge >> pq;
 			for (int i = 0; i < n; i++) {
-				self._matrix[i].resize(n, MAX);
+				for (int j = 0; j < n; j++) {
+					if(i < j && _matrix[i][j] != MAX)
+						pq.push(Edge(i, j, _matrix[i][j]));
+				}
 			}
+
+			W total = W();
+			int edgeCount = 0;
+			UnionFindSet ufs(n);
+			while (edgeCount < n - 1 && pq.size()) {
+				auto top = pq.top();
+				pq.pop();
+				int srci = top.srci;
+				int dsti = top.dsti;
+				if (ufs.FindRoot(srci) != ufs.FindRoot(dsti)) {
+					total += top.w;
+					edgeCount += 1;
+					ufs.Union(srci, dsti);
+					self.addEdge(_vertexs[srci], _vertexs[dsti], top.w);
+				}
+			}
+
+			if (edgeCount != n - 1) {
+				return W();
+			}
+			else {
+				return total;
+			}
+		}
+
+		//克里姆算法进行的是局部贪心的策略
+		W Prim(Self& self, const V& val) {
+			int n = _vertexs.size();
+			self._vertexs = _vertexs;
+			self._indexMap = _indexMap;
+			self._matrix = _matrix;
+			
+			int srci = getVertexIndex(val);
+			std::vector<bool> X(n, false);
+			X[srci] = true;
+			std::vector<bool> Y(n, true);
+			Y[srci] = false;
 
 			std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> pq;
 			for (int i = 0; i < n; i++) {
-				for (int j = 0; j < n; j++) {
-					if (i < j && _matrix[i][j] != MAX) {
-						pq.push(Edge(i, j, _matrix[i][j]));
+				if (_matrix[srci][i] != MAX) {
+					pq.push(Edge(srci, i, _matrix[srci][i]));
+				}
+			}
+
+			int vertexCount = 1;
+			W totalW = W();
+			while (pq.size()) {
+				auto top = pq.top();
+				pq.pop();
+				int srci = top.srci;
+				int dsti = top.dsti;
+				W w = top.w;
+				if (!X[dsti] && Y[dsti]) {
+					X[srci] = true;
+					Y[dsti] = false;
+					vertexCount++;
+					self.addEdge(_vertexs[srci], _vertexs[dsti], w);
+					totalW += w;
+					for (int i = 0; i < n; i++) {
+						if (_matrix[dsti][i] != MAX) {
+							pq.push(Edge(dsti, i, _matrix[dsti][i]));
+						}
 					}
 				}
 			}
 
-			int edgeCount = 0;
-			W total = 0;
-			UnionFindSet ufs(n);
-			while (edgeCount < n - 1 && pq.size()) {
-				auto e = pq.top();
-				pq.pop();
-				int srci = e.srci, dsti = e.dsti;
-				if (ufs.FindRoot(srci) != ufs.FindRoot(dsti)) {
-					ufs.Union(srci, dsti);
-					edgeCount++;
-					total += e.w;
-					self.addEdge(_vertexs[srci], _vertexs[dsti], e.w);
-				}
-			}
-
-			if (edgeCount == n - 1) {
-				return total;
+			if (vertexCount != n) {
+				return W();
 			}
 			else {
-				return W();
+				return totalW;
 			}
 		}
 
