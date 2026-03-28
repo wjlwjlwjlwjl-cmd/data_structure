@@ -32,7 +32,7 @@ namespace graph_matrix {
 		using Self = Graph<V, W, MAX, directional>;
 		Graph(){}
 
-		Graph(const V *vals, size_t sz)
+		Graph(const V *vals, int sz)
 		{
 			_vertexs.reserve(sz);
 			for (int i = 0; i < sz; i++)
@@ -110,22 +110,22 @@ namespace graph_matrix {
 		void Print()
 		{
 			// 打印顶点和下标映射关系
-			for (size_t i = 0; i < _vertexs.size(); ++i)
+			for (int i = 0; i < _vertexs.size(); ++i)
 			{
 				std::cout << _vertexs[i] << "-" << i << " ";
 			}
 			std::cout << std::endl << std::endl;
 			std::cout << "  ";
-			for (size_t i = 0; i < _vertexs.size(); ++i)
+			for (int i = 0; i < _vertexs.size(); ++i)
 			{
 				std::cout << i << " ";
 			}
 			std::cout << std::endl;
 			// 打印矩阵
-			for (size_t i = 0; i < _matrix.size(); ++i)
+			for (int i = 0; i < _matrix.size(); ++i)
 			{
 				std::cout << i << " ";
-				for (size_t j = 0; j < _matrix[i].size(); ++j)
+				for (int j = 0; j < _matrix[i].size(); ++j)
 				{
 					if (_matrix[i][j] != MAX)
 						std::cout << _matrix[i][j] << " ";
@@ -136,9 +136,9 @@ namespace graph_matrix {
 			}
 			std::cout << std::endl << std::endl;
 			// 打印所有的边
-			for (size_t i = 0; i < _matrix.size(); ++i)
+			for (int i = 0; i < _matrix.size(); ++i)
 			{
-				for (size_t j = 0; j < _matrix[i].size(); ++j)
+				for (int j = 0; j < _matrix[i].size(); ++j)
 				{
 					if (i < j && _matrix[i][j] != MAX)
 					{
@@ -202,7 +202,8 @@ namespace graph_matrix {
 			}
 		}
 
-		//克里姆算法进行的是局部贪心的策略
+		// 最小生成树策略二：克里姆算法
+		// 进行的是局部贪心的策略
 		W Prim(Self& self, const V& val) {
 			int n = _vertexs.size();
 			self._vertexs = _vertexs;
@@ -252,6 +253,63 @@ namespace graph_matrix {
 			}
 		}
 
+		//单源最短路径
+		void Dijkstra(const V& val, std::vector<W>& dist, std::vector<int>& pPath) {
+			//dist用来表示起点到某个点的权值之和
+			//pPath用来记录最短路径中从起点到当前点的路线中终点前一个点的下表
+			//S用来记录当前位置是否已经确定了最小值
+			int n = _vertexs.size();
+			int srci = getVertexIndex(val);
+			dist.resize(n, MAX);
+			pPath.resize(n, -1);
+			std::vector<bool> S(n, false);
+			dist[srci] = W();
+			pPath[srci] = 0;
+
+			for (int s = 0; s < n; s++) {
+				int u = 0;
+				W minW = MAX;
+				for (int i = 0; i < n; i++) {
+					if (!S[i] && dist[i] < minW) {
+						u = i;
+						minW = dist[i];
+					}
+				}
+				S[u] = true;
+				for (int i = 0; i < n; i++) {
+					if (!S[i] && _matrix[u][i] != MAX && _matrix[u][i] + dist[u] < dist[i]) {
+						dist[i] = _matrix[u][i] + dist[u];
+						pPath[i] = u;
+					}
+				}
+			}
+		}
+
+		void PrinrtShotPath(const V& src, const std::vector<W>& dist, const std::vector<int>& parentPath)
+		{
+			int N = _vertexs.size();
+			int srci = getVertexIndex(src);
+			for (int i = 0; i < N; ++i)
+			{
+				if (i == srci)
+					continue;
+				std::vector<int> path;
+				int parenti = i;
+				while (parenti != srci)
+				{
+					path.push_back(parenti);
+					parenti = parentPath[parenti];
+				}
+				path.push_back(srci);
+				reverse(path.begin(), path.end());
+				for (auto pos : path)
+				{
+					std::cout << _vertexs[pos] << "->";
+				}
+				std::cout << dist[i] << std::endl;
+			}
+		}
+
 	private:
 		std::vector<V> _vertexs;              // 存储所有顶点
 		std::unordered_map<V, int> _indexMap; // 存储顶点下标
@@ -284,7 +342,7 @@ namespace graph_table {
 	template <class V, class W, bool directional = false>
 	class Graph {
 	public:
-		Graph(const V* vals, size_t n) {
+		Graph(const V* vals, int n) {
 			_vertexs.reserve(n);
 			for (int i = 0; i < n; i++) {
 				_vertexs.push_back(vals[i]);
@@ -294,7 +352,7 @@ namespace graph_table {
 			_edges.resize(n, nullptr);
 		}
 
-		size_t GetVertexIndex(const V val) {
+		int GetVertexIndex(const V val) {
 			auto it = _indexMap.find(val);
 			if (it == _indexMap.end()) {
 				throw std::invalid_argument("wrong index");

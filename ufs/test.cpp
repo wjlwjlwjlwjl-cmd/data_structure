@@ -68,11 +68,32 @@ void TestMinTree() {
 	kminTree2.Print();
 }
 
+void TestGraphDijkstra()
+{
+	const char* str = "syztx";
+	graph_matrix::Graph<char, int, INT_MAX, true> g(str, strlen(str));
+	g.addEdge('s', 't', 10);
+	g.addEdge('s', 'y', 5);
+	g.addEdge('y', 't', 3);
+	g.addEdge('y', 'x', 9);
+	g.addEdge('y', 'z', 2);
+	g.addEdge('z', 's', 7);
+	g.addEdge('z', 'x', 6);
+	g.addEdge('t', 'y', 2);
+	g.addEdge('t', 'x', 1);
+	g.addEdge('x', 'z', 4);
+	std::vector<int> dist;
+	std::vector<int> parentPath;
+	g.Dijkstra('s', dist, parentPath);
+	g.PrinrtShotPath('s', dist, parentPath);
+}
+
 int main() {
 	UnionFindSet ufs(5);
 	//TestTableGraph();
 	//TestMatrixGraph();
 	//TestGraphBDFS();
-	TestMinTree();
+	//TestMinTree();
+	TestGraphDijkstra();
 	return 0;
 }
