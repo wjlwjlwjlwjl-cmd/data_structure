@@ -26,7 +26,7 @@ void TestGraphBDFS() {
 	auto g2 = g1;
 	g1.Kruskal(g2);
 	std::cout << "--------------------------" << std::endl;
-	g2.Print();
+	//g2.Print();
 	
 }
 
@@ -130,8 +130,6 @@ void TestFloydWarShall()
 	std::vector<std::vector<int>> vvDist;
 	std::vector<std::vector<int>> vvParentPath;
 	g.FloydWarShall(vvDist, vvParentPath);
-	std::cout << vvDist.size() << " " << vvParentPath.size() << std::endl;
-	std::cout << strlen(str) << std::endl;
 	// 打印任意两点之间的最短路径
 	for (size_t i = 0; i < strlen(str); ++i)
 	{

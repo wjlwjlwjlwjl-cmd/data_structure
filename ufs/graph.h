@@ -24,7 +24,6 @@
 #include "ufs.h"
 
 namespace graph_matrix {
-
 	template <class V, class W, int MAX = INT_MAX, bool directional = false>
 	class Graph
 	{
@@ -170,47 +169,45 @@ namespace graph_matrix {
 			self._indexMap = _indexMap;
 			self._matrix = _matrix;
 
-			std::priority_queue < Edge, std::vector<Edge>, std::greater<Edge >> pq;
+			std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> pq;
 			for (int i = 0; i < n; i++) {
 				for (int j = 0; j < n; j++) {
-					if(i < j && _matrix[i][j] != MAX)
+					if(_matrix[i][j] != MAX)
 						pq.push(Edge(i, j, _matrix[i][j]));
 				}
 			}
 
-			W total = W();
 			int edgeCount = 0;
+			W totalW = W();
 			UnionFindSet ufs(n);
-			while (edgeCount < n - 1 && pq.size()) {
-				auto top = pq.top();
+			while (edgeCount != n - 1 && pq.size()) {
+				auto min = pq.top();
 				pq.pop();
-				int srci = top.srci;
-				int dsti = top.dsti;
+				int srci = min.srci;
+				int dsti = min.dsti;
+				W w = min.w;
 				if (ufs.FindRoot(srci) != ufs.FindRoot(dsti)) {
-					total += top.w;
-					edgeCount += 1;
 					ufs.Union(srci, dsti);
-					self.addEdge(_vertexs[srci], _vertexs[dsti], top.w);
+					edgeCount++;
+					totalW += w;
+					self.addEdge(_vertexs[srci], _vertexs[dsti], w);
 				}
 			}
 
 			if (edgeCount != n - 1) {
 				return W();
 			}
-			else {
-				return total;
-			}
+			return totalW;
 		}
 
 		// 最小生成树策略二：克里姆算法
 		// 进行的是局部贪心的策略
 		W Prim(Self& self, const V& val) {
 			int n = _vertexs.size();
+			int srci = getVertexIndex(val);
 			self._vertexs = _vertexs;
 			self._indexMap = _indexMap;
 			self._matrix = _matrix;
-			
-			int srci = getVertexIndex(val);
 			std::vector<bool> X(n, false);
 			X[srci] = true;
 			std::vector<bool> Y(n, true);
@@ -223,20 +220,20 @@ namespace graph_matrix {
 				}
 			}
 
-			int vertexCount = 1;
+			int edgeCount = 0;
 			W totalW = W();
-			while (pq.size()) {
-				auto top = pq.top();
+			while (edgeCount != n - 1 && pq.size()) {
+				auto min = pq.top();
 				pq.pop();
-				int srci = top.srci;
-				int dsti = top.dsti;
-				W w = top.w;
+				int srci = min.srci;
+				int dsti = min.dsti;
+				W w = min.w;
 				if (!X[dsti] && Y[dsti]) {
-					X[srci] = true;
-					Y[dsti] = false;
-					vertexCount++;
 					self.addEdge(_vertexs[srci], _vertexs[dsti], w);
+					edgeCount++;
 					totalW += w;
+					X[dsti] = true;
+					Y[dsti] = false;
 					for (int i = 0; i < n; i++) {
 						if (_matrix[dsti][i] != MAX) {
 							pq.push(Edge(dsti, i, _matrix[dsti][i]));
@@ -245,12 +242,10 @@ namespace graph_matrix {
 				}
 			}
 
-			if (vertexCount != n) {
+			if (edgeCount != n - 1) {
 				return W();
 			}
-			else {
-				return totalW;
-			}
+			return totalW;
 		}
 
 		//单源最短路径dijkstra，不适合负权的情况
@@ -259,19 +254,18 @@ namespace graph_matrix {
 			//dist用来表示起点到某个点的权值之和
 			//pPath用来记录最短路径中从起点到当前点的路线中终点前一个点的下表
 			//S用来记录当前位置是否已经确定了最小值
-			int n = _vertexs.size();
 			int srci = getVertexIndex(val);
+			int n = _vertexs.size();
 			dist.resize(n, MAX);
 			pPath.resize(n, -1);
-			std::vector<bool> S(n, false);
 			dist[srci] = W();
-			pPath[srci] = 0;
+			std::vector<bool> S(n, false);
 
 			for (int s = 0; s < n; s++) {
-				int u = 0;
-				W minW = MAX;
+				int u = srci;
+				int minW = MAX;
 				for (int i = 0; i < n; i++) {
-					if (!S[i] && dist[i] < minW) {
+					if (!S[i] && minW > dist[i]) {
 						u = i;
 						minW = dist[i];
 					}
@@ -280,8 +274,8 @@ namespace graph_matrix {
 
 				//松弛更新
 				for (int i = 0; i < n; i++) {
-					if (!S[i] && _matrix[u][i] != MAX && _matrix[u][i] + dist[u] < dist[i]) {
-						dist[i] = _matrix[u][i] + dist[u];
+					if (!S[i] && _matrix[u][i] != MAX && dist[u] + _matrix[u][i] < dist[i]) {
+						dist[i] = dist[u] + _matrix[u][i];
 						pPath[i] = u;
 					}
 				}
@@ -289,13 +283,13 @@ namespace graph_matrix {
 		}
 
 		bool BellmanFord(const V& src, std::vector<W>& dist, std::vector<int>& pPath) {
+			int srci = getVertexIndex(src);
 			int n = _vertexs.size();
 			dist.resize(n, MAX);
+			//dist[srci] = W();
 			pPath.resize(n, -1);
-			int srci = getVertexIndex(src);
-			dist[srci] = W();
 
-			for (int k = 0; k < n; k++) {
+			for (int k = 0; k < n - 1; k++) {
 				bool update = false;
 				for (int i = 0; i < n; i++) {
 					for (int j = 0; j < n; j++) {
@@ -310,7 +304,7 @@ namespace graph_matrix {
 					break;
 				}
 			}
-			
+
 			for (int i = 0; i < n; i++) {
 				for (int j = 0; j < n; j++) {
 					if (_matrix[i][j] != MAX && dist[i] + _matrix[i][j] < dist[j]) {
@@ -340,6 +334,7 @@ namespace graph_matrix {
 				}
 			}
 
+			//一次尝试用所有点作为中间点，去更新任意两点之间的距离
 			for (int k = 0; k < n; k++) {
 				for (int i = 0; i < n; i++) {
 					for (int j = 0; j < n; j++) {
@@ -396,7 +391,6 @@ namespace graph_matrix {
 }
 
 namespace graph_table {
-
 	template <class W>
 	struct edge {
 		int index;
