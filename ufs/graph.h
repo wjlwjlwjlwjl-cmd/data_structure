@@ -253,7 +253,8 @@ namespace graph_matrix {
 			}
 		}
 
-		//单源最短路径
+		//单源最短路径dijkstra，不适合负权的情况
+		//时间复杂度O(N^2)，空间复杂度O(N)
 		void Dijkstra(const V& val, std::vector<W>& dist, std::vector<int>& pPath) {
 			//dist用来表示起点到某个点的权值之和
 			//pPath用来记录最短路径中从起点到当前点的路线中终点前一个点的下表
@@ -276,10 +277,77 @@ namespace graph_matrix {
 					}
 				}
 				S[u] = true;
+
+				//松弛更新
 				for (int i = 0; i < n; i++) {
 					if (!S[i] && _matrix[u][i] != MAX && _matrix[u][i] + dist[u] < dist[i]) {
 						dist[i] = _matrix[u][i] + dist[u];
 						pPath[i] = u;
+					}
+				}
+			}
+		}
+
+		bool BellmanFord(const V& src, std::vector<W>& dist, std::vector<int>& pPath) {
+			int n = _vertexs.size();
+			dist.resize(n, MAX);
+			pPath.resize(n, -1);
+			int srci = getVertexIndex(src);
+			dist[srci] = W();
+
+			for (int k = 0; k < n; k++) {
+				bool update = false;
+				for (int i = 0; i < n; i++) {
+					for (int j = 0; j < n; j++) {
+						if (_matrix[i][j] != MAX && dist[i] + _matrix[i][j] < dist[j]) {
+							dist[j] = dist[i] + _matrix[i][j];
+							pPath[j] = i;
+							update = true;
+						}
+					}
+				}
+				if (!update) {
+					break;
+				}
+			}
+			
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n; j++) {
+					if (_matrix[i][j] != MAX && dist[i] + _matrix[i][j] < dist[j]) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+
+		void FloydWarShall(std::vector<std::vector<W>>& vvDist, std::vector<std::vector<int>>& vvPath) {
+			int n = _vertexs.size();
+			vvDist.resize(n);
+			vvPath.resize(n);
+			for (int i = 0; i < n; i++) {
+				vvDist[i].resize(n, MAX);
+				vvPath[i].resize(n, -1);
+				vvDist[i][i] = 0;
+			}
+
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n; j++) {
+					if (_matrix[i][j] != MAX) {
+						vvDist[i][j] = _matrix[i][j];
+						vvPath[i][j] = i;
+					}
+				}
+			}
+
+			for (int k = 0; k < n; k++) {
+				for (int i = 0; i < n; i++) {
+					for (int j = 0; j < n; j++) {
+						if (vvDist[i][k] != MAX && vvDist[k][j] != MAX
+							&& vvDist[i][k] + vvDist[k][j] < vvDist[i][j]) {
+							vvDist[i][j] = vvDist[i][k] + vvDist[k][j];
+							vvPath[i][j] = vvPath[k][j];
+						}
 					}
 				}
 			}

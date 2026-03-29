@@ -88,12 +88,66 @@ void TestGraphDijkstra()
 	g.PrinrtShotPath('s', dist, parentPath);
 }
 
+void TestGraphBellmanFord()
+{
+	const char* str = "syztx";
+	graph_matrix::Graph<char, int, INT_MAX, true> g(str, strlen(str));
+	g.addEdge('s', 't', 6);
+	g.addEdge('s', 'y', 7);
+	g.addEdge('y', 'z', 9);
+	g.addEdge('y', 'x', -3);
+	g.addEdge('z', 's', 2);
+	g.addEdge('z', 'x', 7);
+	g.addEdge('t', 'x', 5);
+	g.addEdge('t', 'y', 8);
+	g.addEdge('t', 'z', -4);
+	g.addEdge('x', 't', -2);
+	std::vector<int> dist;
+	std::vector<int> parentPath;
+	if (g.BellmanFord('s', dist, parentPath))
+	{
+		g.PrinrtShotPath('s', dist, parentPath);
+	}
+	else
+	{
+		std::cout << "have loop of minus weight" << std::endl;
+	}
+}
+
+void TestFloydWarShall()
+{
+	const char* str = "12345";
+	graph_matrix::Graph<char, int, INT_MAX, true> g(str, strlen(str));
+	g.addEdge('1', '2', 3);
+	g.addEdge('1', '3', 8);
+	g.addEdge('1', '5', -4);
+	g.addEdge('2', '4', 1);
+	g.addEdge('2', '5', 7);
+	g.addEdge('3', '2', 4);
+	g.addEdge('4', '1', 2);
+	g.addEdge('4', '3', -5);
+	g.addEdge('5', '4', 6);
+	std::vector<std::vector<int>> vvDist;
+	std::vector<std::vector<int>> vvParentPath;
+	g.FloydWarShall(vvDist, vvParentPath);
+	std::cout << vvDist.size() << " " << vvParentPath.size() << std::endl;
+	std::cout << strlen(str) << std::endl;
+	// 打印任意两点之间的最短路径
+	for (size_t i = 0; i < strlen(str); ++i)
+	{
+		g.PrinrtShotPath(str[i], vvDist[i], vvParentPath[i]);
+		std::cout << std::endl;
+	}
+}
+
 int main() {
 	UnionFindSet ufs(5);
 	//TestTableGraph();
 	//TestMatrixGraph();
 	//TestGraphBDFS();
 	//TestMinTree();
-	TestGraphDijkstra();
+	//TestGraphDijkstra();
+	//TestGraphBellmanFord();
+	TestFloydWarShall();
 	return 0;
 }
