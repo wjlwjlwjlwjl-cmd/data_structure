@@ -20,6 +20,8 @@
 #include <iostream>
 #include <string>
 #include <queue>
+#include <cstring>
+#include <algorithm>
 
 #include "ufs.h"
 
@@ -165,28 +167,30 @@ namespace graph_matrix {
 		//每次路径都选最短的一条，通过并查集来确定不成环
 		W Kruskal(Self& self) {
 			int n = _vertexs.size();
-			self._vertexs = _vertexs;
 			self._indexMap = _indexMap;
-			self._matrix = _matrix;
+			self._vertexs = _vertexs;	
+			self._matrix.resize(n);
+			for(int i = 0; i < n; i++){
+				self._matrix[i].resize(n);
+			}
 
 			std::priority_queue<Edge, std::vector<Edge>, std::greater<Edge>> pq;
-			for (int i = 0; i < n; i++) {
-				for (int j = 0; j < n; j++) {
-					if(_matrix[i][j] != MAX)
-						pq.push(Edge(i, j, _matrix[i][j]));
+			for(int i = 0; i < n; i++){
+				for(int j = 0; j < n; j++){
+					pq.push(Edge(i, j, _matrix[i][j]));
 				}
 			}
 
 			int edgeCount = 0;
-			W totalW = W();
+			int totalW = W();
 			UnionFindSet ufs(n);
-			while (edgeCount != n - 1 && pq.size()) {
+			while(edgeCount != n - 1 && pq.size()){
 				auto min = pq.top();
 				pq.pop();
 				int srci = min.srci;
 				int dsti = min.dsti;
-				W w = min.w;
-				if (ufs.FindRoot(srci) != ufs.FindRoot(dsti)) {
+				int w = min.w;
+				if(ufs.FindRoot(srci) != ufs.FindRoot(dsti)){
 					ufs.Union(srci, dsti);
 					edgeCount++;
 					totalW += w;
@@ -194,10 +198,12 @@ namespace graph_matrix {
 				}
 			}
 
-			if (edgeCount != n - 1) {
+			if(edgeCount != n - 1){
 				return W();
 			}
-			return totalW;
+			else{
+				return totalW;
+			}
 		}
 
 		// 最小生成树策略二：克里姆算法
@@ -221,7 +227,7 @@ namespace graph_matrix {
 			}
 
 			int edgeCount = 0;
-			W totalW = W();
+			W totalW = W()
 			while (edgeCount != n - 1 && pq.size()) {
 				auto min = pq.top();
 				pq.pop();
@@ -286,7 +292,7 @@ namespace graph_matrix {
 			int srci = getVertexIndex(src);
 			int n = _vertexs.size();
 			dist.resize(n, MAX);
-			//dist[srci] = W();
+			dist[srci] = W();
 			pPath.resize(n, -1);
 
 			for (int k = 0; k < n - 1; k++) {
@@ -364,7 +370,7 @@ namespace graph_matrix {
 					parenti = parentPath[parenti];
 				}
 				path.push_back(srci);
-				reverse(path.begin(), path.end());
+				std::reverse(path.begin(), path.end());
 				for (auto pos : path)
 				{
 					std::cout << _vertexs[pos] << "->";
@@ -429,12 +435,12 @@ namespace graph_table {
 			int srci = GetVertexIndex(src);
 			int desi = GetVertexIndex(des);
 
-			edge<W>* new_e = new edge(desi, w);
+			edge<W>* new_e = new edge<W>(desi, w);
 			new_e->next = _edges[srci];
 			_edges[srci] = new_e;
 
-			if (directional) {
-				edge<W>* new_e = new edge(srci, w);
+			if (!directional) {
+				edge<W>* new_e = new edge<W>(srci, w);
 				new_e->next = _edges[desi];
 				_edges[desi] = new_e;
 			}

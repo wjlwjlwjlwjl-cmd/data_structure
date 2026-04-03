@@ -144,8 +144,8 @@ int main() {
 	//TestMatrixGraph();
 	//TestGraphBDFS();
 	//TestMinTree();
-	//TestGraphDijkstra();
+	TestGraphDijkstra();
 	//TestGraphBellmanFord();
-	TestFloydWarShall();
+	//TestFloydWarShall();
 	return 0;
 }
